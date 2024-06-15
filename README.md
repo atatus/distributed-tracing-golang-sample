@@ -18,13 +18,7 @@ npm install -g serve
 
  * Copy the `.env.example` file to `.env` in the `root` directory.
  * Copy the `.env.example` file to `.env` in the `frontend` directory.
-
-
-## Navigate `order/server.go` , `payment/server.go` & `users/server.go`.
-
-```go
-const serviceName = "<YOUR_SERVICE_NAME>"
-```
+ 
 
 ## Start individual microservices using below commands
 
