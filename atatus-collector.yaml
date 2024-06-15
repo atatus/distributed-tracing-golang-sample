@@ -1,0 +1,60 @@
+# atatus-collector.yaml
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+  filelog:
+    include:
+      - /var/log/*.log
+    start_at: beginning
+    operators:
+      - type: regex_parser
+        regex: '^(?P<time>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) (?P<sev>[A-Z]*) (?P<msg>.*)$'
+        timestamp:
+          parse_from: attributes.time
+          layout: '%Y-%m-%d %H:%M:%S'
+        severity:
+          parse_from: attributes.sev
+
+exporters:
+  # HTTP setup
+  logging:
+    verbosity: detailed
+  otlphttp/atatus:
+    endpoint: 'https://otel-rx.atatus.com'
+    headers:
+      api-key: '<YOUR_API_KEY>'
+
+processors:
+  batch:
+
+  # You can optionally set the  resource attributes (service, env and version - Optional).
+  resource:
+    attributes:
+      - key: service
+        value: "go-services"
+        action: upsert
+      - key: env
+        value: "prod"
+        action: upsert
+      - key: version
+        value: "1.0.0"
+        action: upsert
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [resource, batch]
+      exporters: [logging, otlphttp/atatus]
+    metrics:
+      receivers: [otlp]
+      processors: [resource, batch]
+      exporters: [logging, otlphttp/atatus]
+    logs:
+      receivers: [otlp, filelog]
+      processors: [resource, batch]
+      exporters: [logging, otlphttp/atatus]
